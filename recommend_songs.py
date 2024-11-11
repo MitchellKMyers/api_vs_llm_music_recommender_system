@@ -17,12 +17,10 @@ def run_recommender_spotify_direct(input_type, input_uri, num_recommendations):
     base_playlist_df, ref_song_feature_df, fitted_tfidf, fitted_scaler, fitted_ohe, fitted_enc, genre_groups = load_song_options_df()
 
     try:
-        assert 1 == 4
-
         if input_type.lower() == 'song':
             input_song_data = pd.DataFrame([get_track_data_v2(sp.track(input_uri), sp, playlist_song=False)])
         elif input_type.lower() == 'playlist':
-            input_song_data = pd.DataFrame([get_playlist_data_v4(input_uri, sp)])
+            input_song_data = get_playlist_data_v4(input_uri, sp)
     except:
         input_song_data = base_playlist_df.sample(10)
 

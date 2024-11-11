@@ -138,7 +138,7 @@ def scale_audio_features(song_df, fit_scaler=False):
 def encode_cat_features(df, fitted_ohe=False):
     key_df = pd.DataFrame(df['key'])
     if fitted_ohe==False:
-        fitted_ohe = OneHotEncoder()
+        fitted_ohe = OneHotEncoder(handle_unknown='ignore')
         fitted_ohe.fit(key_df)
         return fitted_ohe, pd.DataFrame(columns=fitted_ohe.get_feature_names_out(), data=fitted_ohe.transform(key_df).toarray())
     else:
