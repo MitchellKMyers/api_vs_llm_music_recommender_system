@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Recommendation Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f4f4; }
+        .container { max-width: 400px; width: 100%; background-color: #fff; padding: 20px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); border-radius: 8px; text-align: center; }
+        h1 { font-size: 24px; margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        select, input[type="text"], input[type="number"], button { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #4CAF50; color: #fff; border: none; cursor: pointer; font-size: 16px; margin-top: 20px; }
+        button:hover { background-color: #45a049; }
+        .recommendations-box { margin-top: 20px; padding: 15px; border-top: 1px solid #ddd; text-align: left; }
+        .recommendations-box h2 { font-size: 18px; margin-top: 0; }
+        .recommendation-item { padding: 8px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Song Recommendation</h1>
+        <form id="recommendationForm" onsubmit="fetchRecommendations(event)">
+            <label for="recommenderType">Recommender Type:</label>
+            <select id="recommenderType" name="recommenderType" required onchange="toggleFields()">
+                <option value="" disabled selected>Select type</option>
+                <option value="llm">LLM</option>
+                <option value="spotifyApi">Spotify API</option>
+            </select>
+
+            <!-- LLM specific fields -->
+            <div id="llmFields" style="display: none;">
+                <label for="likedSong">Songs You Like:</label>
+                <input type="text" id="likedSong" name="likedSong" placeholder="Enter songs you like">
+
+                <label for="likedGenres">Genres You Like:</label>
+                <input type="text" id="likedGenres" name="likedGenres" placeholder="Enter genres you like">
+
+                <label for="dislikedGenres">Genres You Dislike:</label>
+                <input type="text" id="dislikedGenres" name="dislikedGenres" placeholder="Enter genres you dislike">
+            </div>
+
+            <!-- Spotify API specific fields -->
+            <div id="spotifyFields">
+                <label for="inputType">Input Type:</label>
+                <select id="inputType" name="inputType">
+                    <option value="" disabled selected>Select input type</option>
+                    <option value="song">Song</option>
+                    <option value="playlist">Playlist</option>
+                </select>
+
+                <label for="uri">Song or Playlist URI:</label>
+                <input type="text" id="uri" name="uri" placeholder="Enter URI">
+            </div>
+
+            <label for="numRecommendations">Number of Recommendations:</label>
+            <input type="number" id="numRecommendations" name="numRecommendations" placeholder="Enter number" min="1" required>
+
+            <button type="submit">Get Recommendations</button>
+        </form>
+        
+        <div id="recommendationsBox" class="recommendations-box" style="display: none;">
+            <h2>Recommended Songs</h2>
+            <div id="recommendationsList"></div>
+        </div>
+    </div>
+
+    <script>
+        function toggleFields() {
+            const recommenderType = document.getElementById('recommenderType').value;
+            const llmFields = document.getElementById('llmFields');
+            const spotifyFields = document.getElementById('spotifyFields');
+            
+            if (recommenderType === 'llm') {
+                llmFields.style.display = 'block';
+                spotifyFields.style.display = 'none';
+            } else {
+                llmFields.style.display = 'none';
+                spotifyFields.style.display = 'block';
+            }
+        }
+
+        async function fetchRecommendations(event) {
+            event.preventDefault();
+
+            const recommenderType = document.getElementById('recommenderType').value;
+            const numRecommendations = document.getElementById('numRecommendations').value;
+
+            let requestData = { recommenderType, numRecommendations };
+
+            if (recommenderType === 'llm') {
+                requestData.likedSong = document.getElementById('likedSong').value;
+                requestData.likedGenres = document.getElementById('likedGenres').value;
+                requestData.dislikedGenres = document.getElementById('dislikedGenres').value;
+            } else {
+                requestData.inputType = document.getElementById('inputType').value;
+                requestData.uri = document.getElementById('uri').value;
+            }
+
+            const response = await fetch('/get_recommendations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestData)
+            });
+
+            const data = await response.json();
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = '';
+            data.recommendations.forEach(song => {
+                const item = document.createElement('div');
+                item.classList.add('recommendation-item');
+                item.textContent = song;
+                recommendationsList.appendChild(item);
+            });
+
+            document.getElementById('recommendationsBox').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
